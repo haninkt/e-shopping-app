@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1066218707269",
+    "project_id": "eshoping-e11e1",
+    "storage_bucket": "eshoping-e11e1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1066218707269:android:696d119a5f90b4f606c62c",
+        "android_client_info": {
+          "package_name": "com.example.e_shoping"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDrT05TCQsBEi7Vi17CHfUvdOMXbrRqWks"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
