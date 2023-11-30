@@ -1,11 +1,15 @@
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_shoping/cartlist.dart';
 import 'package:e_shoping/detailpage.dart';
+import 'package:e_shoping/likelist.dart';
 import 'package:e_shoping/profile.dart';
 import 'package:e_shoping/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lottie/lottie.dart';
-import 'package:e_shoping/likelist.dart';
+import 'package:e_shoping/serching.dart';
 import 'package:flutter/material.dart';
+import 'package:vibration/vibration.dart';
 import 'package:provider/provider.dart';
 
 class dashboard extends StatefulWidget {
@@ -95,22 +99,28 @@ class _dashboardState extends State<dashboard> {
           padding: const EdgeInsets.only(top: 30),
           child: Container(
             width: 390,
-            height: 100,
-            child: TextField(
-              decoration: InputDecoration(
-                contentPadding: const EdgeInsets.fromLTRB(0, 15, 0, 0),
-                hintText: "Search hear",
-                prefixIcon: const Icon(Icons.search,
-                    color: Color.fromARGB(216, 139, 137, 137)),
-                suffixIcon: IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.mic,
-                        color: Color.fromARGB(216, 139, 137, 137))),
-                filled: true,
-                fillColor: Color.fromARGB(255, 238, 238, 238),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
+            height: 70,
+            child: GestureDetector(onTap: () {
+              Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) =>  SearchPage()),);
+            },
+              child: TextField(enableInteractiveSelection: false,enabled: false, 
+                decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.fromLTRB(0, 15, 0, 0),
+                  hintText: "Search hear",
+                  prefixIcon: const Icon(Icons.search,
+                      color: Color.fromARGB(216, 139, 137, 137)),
+                  // suffixIcon: IconButton(
+                  //     onPressed: () {},
+                  //     icon: const Icon(Icons.mic,
+                  //         color: Color.fromARGB(216, 139, 137, 137))),
+                  filled: true,
+                  fillColor: Color.fromARGB(255, 238, 238, 238),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
               ),
             ),
@@ -123,7 +133,7 @@ class _dashboardState extends State<dashboard> {
                   autoPlay: true,
                   autoPlayInterval: const Duration(seconds: 5),
                   autoPlayAnimationDuration: const Duration(milliseconds: 700),
-                  height: 200,
+                  height: MediaQuery.of(context).size.height /4,
                   viewportFraction: 1.0),
               items: data.map((item) {
                 return GridTile(
@@ -134,8 +144,9 @@ class _dashboardState extends State<dashboard> {
                 );
               }).toList(),
             ),
+            SizedBox(child: Text('PRODUCTS')),
             SizedBox(
-              height: 344,
+              height: MediaQuery.of(context).size.height /2.31,
               width: double.infinity,
               child: Categories(),
             ),
@@ -157,10 +168,30 @@ class _CategoriesState extends State<Categories> {
   @override
   Widget build(BuildContext context) {
     final Api = Provider.of<api>(context);
+    // List<dynamic> images = [];
+    // images = Api.products[Api.productindex]['images'];
+    // // void addcart() {final data = {'name': '${Api.products[Api.productindex]['title']}', 'price': '\$${Api.products[Api.productindex]['price']}','thumbnail': '${Api.products[Api.productindex]['thumbnail']}'};
+    // // cart.likelist.add(data);}
+    void addwish() {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final data = {
+          'name': '${Api.products[Api.productindex]['title']}',
+          'price': '\$${Api.products[Api.productindex]['price']}',
+          'thumbnail': '${Api.products[Api.productindex]['thumbnail']}'
+        };
+
+        FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .collection('wishlist')
+            .add(data);
+      }
+    }
     return Api.products.isNotEmpty
         ? GridView.builder(
           shrinkWrap: true,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               mainAxisExtent: 230.0,
               // Set the height of each item
@@ -192,10 +223,10 @@ class _CategoriesState extends State<Categories> {
                     child: Column(
                       children: [
                         Image.network('${Api.products[index]['thumbnail']}',
-                            height: 100.0, width: 100.0),
+                            height: 99.0, width: double.infinity),
                         const SizedBox(height: 10.0),
                         Text('${Api.products[index]['title']}',
-                            style: const TextStyle(fontSize: 14.0)),
+                            style: const TextStyle(fontSize: 13.0)),
                         const SizedBox(height: 5.0),
                         Row(
                           children: [
@@ -213,6 +244,12 @@ class _CategoriesState extends State<Categories> {
                                     fontWeight: FontWeight.bold)),
                           ],
                         ),
+                        IconButton(onPressed: () {addwish();
+                          Vibration.vibrate(duration: 500);
+                          ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Added to Wishlist'),));
+                        }, icon: Icon(Icons.favorite))
                       ],
                     ),
                   ),

@@ -1,3 +1,6 @@
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class Likes extends StatefulWidget {
@@ -8,65 +11,89 @@ class Likes extends StatefulWidget {
 }
 
 class _LikesState extends State<Likes> {
-  final List<String> _items = [
-    'Item 1',
-    'Item 2',
-    'Item 3',
-    'Item 4',
-    'Item 5',
-    'Tool 1',
-    'Tool 2',
-    'Tool 3',
-    'Tool 4',
-    'Tool 5',
-    'Cart 1',
-    'Cart 2',
-    'Cart 3',
-    'Cart 4',
-    'Cart 5'
-    
-  ];
+   final CollectionReference likelist = FirebaseFirestore.instance.collection('users');
 
-  String _searchTerm = '';
+  double totalPrice = 0;
+
+  void deleteDonor(String docid) async {
+  try {
+    await likelist
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .collection('wishlist')
+        .doc(docid)
+        .delete();
+    print("Document with ID: $docid deleted");
+  } catch (e) {
+    print("Error deleting document: $e");
+  }
+}
+
+  void calculateTotalPrice() {
+    totalPrice = 0;
+    likelist.doc(FirebaseAuth.instance.currentUser!.uid).collection('wishlist').get().then((snapshot) {
+      for (DocumentSnapshot wishlist in snapshot.docs) {
+        totalPrice += double.parse(wishlist['price']);
+      }
+      setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Search Filter Demo'),
-      ),
-      body: Column(
-        children: [
-          TextField(
-            onChanged: (text) {
-              setState(() {
-                _searchTerm = text;
-              });
-            },
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.search),
-              hintText: 'Search',
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: _items.length,
-              itemBuilder: (context, index) {
-                final item = _items[index];
+    final user = FirebaseAuth.instance.currentUser;
 
-                if (_searchTerm.isEmpty ||
-                    item.toLowerCase().contains(_searchTerm.toLowerCase())) {
-                  return ListTile(
-                    title: Text(item),
-                  );
-                } else {
-                  return const SizedBox.shrink();
-                }
-              },
-            ),
+    if (user != null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('wishlist'),
+          elevation: 0.0,
+        ),
+        body: StreamBuilder(
+          stream: likelist.doc(user.uid).collection('wishlist').snapshots(),
+          builder: (context, AsyncSnapshot snapshot) {
+            if (snapshot.hasData) {
+  calculateTotalPrice();
+  return ListView.builder(
+    itemCount: snapshot.data?.docs.length,
+    itemBuilder: (context, index) {
+      final DocumentSnapshot wishlist = snapshot.data!.docs[index];
+      return ListTile(
+        leading: SizedBox(
+          height: 115,
+          width: 100,
+          child: Image(
+            image: NetworkImage(wishlist['thumbnail']),
+            fit: BoxFit.cover,
           ),
-        ],
-      ),
-    );
+        ),
+        title: Text(wishlist['name']),
+        subtitle: Text(wishlist['price']),
+        trailing: IconButton(
+          onPressed: () {
+            deleteDonor(wishlist.id);
+          },
+          icon: const Icon(Icons.delete),
+        ),
+      );
+    },
+  );
+} else {
+  return Center(
+    child: Text('Empty'),
+  );
+}
+
+
+            // return Center(
+            //   child: LottieBuilder.asset('assets/images/Animation - 1700470091164.json'),
+            // );
+          },
+        ),
+      );
+    } else {
+      return Center(
+        child: Text('Please login to view your cart'),
+      );
+    }
   }
 }

@@ -66,3 +66,13 @@ class razorpay extends ChangeNotifier {
     _razorpay.open(options);
   }
 }
+class CartProvider extends ChangeNotifier {
+  double _totalPrice = 0.0;
+
+  double get totalPrice => _totalPrice;
+
+  void setTotalPrice(double price) {
+    _totalPrice = price;
+    notifyListeners(); // Notify listeners when totalPrice changes
+  }
+}

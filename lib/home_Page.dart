@@ -24,7 +24,7 @@ class _homePageState extends State<homePage> {
             Icon(Icons.home, size: 30),
             Icon(Icons.favorite, size: 30),
             Icon(Icons.shopping_cart, size: 30),
-            Icon(Icons.perm_identity, size: 30),
+            Icon(Icons.person, size: 30),
           ],
           color: Colors.white,
           buttonBackgroundColor: const Color.fromARGB(255, 189, 187, 187),

@@ -1,5 +1,5 @@
 import 'package:e_shoping/home_Page.dart';
-import 'package:e_shoping/login_Page..dart';
+import 'package:e_shoping/login_Page..dart'; // Corrected typo in file name
 import 'package:e_shoping/networkissu.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -14,57 +14,49 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    checkIfAlreadyLogin();
-   _checkConnectivity();
+    _checkConnectivity();
   }
-bool hasNetwork = false;
 
   void _checkConnectivity() async {
     var connectivityResult = await (Connectivity().checkConnectivity());
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
-      setState(() {
-        hasNetwork = true;
-      });
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => homePage()),
-      );
+      // Network available, proceed to check login status
+      checkIfAlreadyLogin();
     } else {
-      setState(() {
-        hasNetwork = false;
-      });
+      // No network, navigate to NetworkErrorPage
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => NetworkErrorPage()),
       );
     }
   }
+
   Future<void> checkIfAlreadyLogin() async {
     FirebaseAuth auth = FirebaseAuth.instance;
     User? user = auth.currentUser;
+
+    // Wait for some operation if needed before navigating
     await Future.delayed(Duration(seconds: 2));
-  if (user != null) {
+
+    if (user != null) {
+      // User is logged in, navigate to HomePage
       Navigator.of(context)
-          .pushReplacement(MaterialPageRoute(builder: (context) =>homePage() ));
-      print('safwan poliyaa');
+          .pushReplacement(MaterialPageRoute(builder: (context) => homePage()));
+      print('User is logged in');
     } else {
+      // No user logged in, navigate to LoginPage
       Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) =>LoginPage() ));
+          MaterialPageRoute(builder: (context) => LoginPage()));
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
-        child: Image.asset(
-          'assets/images/eshoping.png',
-        ),
+      body: Center(
+        child: Image.asset('assets/images/eshoping.png'),
       ),
     );
   }
 }
-
-

@@ -16,24 +16,52 @@ class cartslist extends StatefulWidget {
 }
 
 class cartslistState extends State<cartslist> {
-  final CollectionReference likelist = FirebaseFirestore.instance.collection('users');
+  final CollectionReference cartlist = FirebaseFirestore.instance.collection('users');
+  double totalPrice = 0.0;
 
-  double totalPrice = 0;
-
-  void deleteDonor(String docid) {
-    likelist.doc(docid).delete();
+  @override
+  void initState() {
+    super.initState();
   }
 
-  void calculateTotalPrice() {
-    totalPrice = 0;
-    likelist.doc(FirebaseAuth.instance.currentUser!.uid).collection('cart').get().then((snapshot) {
-      for (DocumentSnapshot wishlist in snapshot.docs) {
-        totalPrice += double.parse(wishlist['price']);
-      }
-      setState(() {});
+  void deletecart(String docid) async {
+    try {
+      await cartlist
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .collection('cart')
+          .doc(docid)
+          .delete();
+      print("Document with ID: $docid deleted");
+    } catch (e) {
+      print("Error deleting document: $e");
+    }
+  }
+
+  void fetchCartItemsAndCalculateTotalPrice(BuildContext context) async {
+    double newTotalPrice = 0;
+    QuerySnapshot snapshot = await cartlist.doc(FirebaseAuth.instance.currentUser!.uid).collection('cart').get();
+
+    for (DocumentSnapshot doc in snapshot.docs) {
+      newTotalPrice += double.tryParse(doc['price'].toString()) ?? 0;
+    }
+
+    setState(() {
+      totalPrice = newTotalPrice;
     });
-  }
 
+    context.read<CartProvider>().setTotalPrice(newTotalPrice);
+}
+
+  void saveTotalPriceToFirebase(double totalPrice) async {
+    try {
+      await cartlist.doc(FirebaseAuth.instance.currentUser!.uid).update({
+        'totalPrice': totalPrice,
+      });
+      print("Total price updated in Firebase");
+    } catch (e) {
+      print("Error saving total price: $e");
+    }
+  }
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
@@ -45,28 +73,27 @@ class cartslistState extends State<cartslist> {
           elevation: 0.0,
         ),
         body: StreamBuilder(
-          stream: likelist.doc(user.uid).collection('cart').snapshots(),
+          stream: cartlist.doc(user.uid).collection('cart').snapshots(),
           builder: (context, AsyncSnapshot snapshot) {
             if (snapshot.hasData) {
-              calculateTotalPrice();
               return ListView.builder(
                 itemCount: snapshot.data?.docs.length,
                 itemBuilder: (context, index) {
-                  final DocumentSnapshot wishlist = snapshot.data!.docs[index];
+                  final DocumentSnapshot cartlist = snapshot.data!.docs[index];
                   return ListTile(
                     leading: SizedBox(
                       height: 115,
                       width: 100,
                       child: Image(
-                        image: NetworkImage(wishlist['thumbnail']),
+                        image: NetworkImage(cartlist['thumbnail']),
                         fit: BoxFit.cover,
                       ),
                     ),
-                    title: Text(wishlist['name']),
-                    subtitle: Text(wishlist['price']),
+                    title: Text(cartlist['name']),
+                    subtitle: Text(cartlist['price']),
                     trailing: IconButton(
                       onPressed: () {
-                        deleteDonor(wishlist.id);
+                        deletecart(cartlist.id);
                       },
                       icon: const Icon(Icons.delete),
                     ),
@@ -81,12 +108,12 @@ class cartslistState extends State<cartslist> {
           },
         ),
         bottomNavigationBar: BottomBar(
-          totalPrice: totalPrice,
-          buyNow: () {
-            // Handle the "Buy Now" button press here
-            print('Buy now!');
-          },
-        ),
+  getTotalPrice: () => totalPrice, // Pass totalPrice through a callback function
+  buyNow: () {
+    // Handle "Buy Now" action here.
+    print('Buy now!');
+  },
+),
       );
     } else {
       return Center(
@@ -97,48 +124,41 @@ class cartslistState extends State<cartslist> {
 }
 
 
-class BottomBar extends StatefulWidget {
-  final double totalPrice;
+class BottomBar extends StatelessWidget {
+  final Function() getTotalPrice;
   final Function buyNow;
 
   const BottomBar({
     super.key,
-    required this.totalPrice,
+    required this.getTotalPrice,
     required this.buyNow,
   });
 
   @override
-  State<BottomBar> createState() => _BottomBarState();
-}
-
-class _BottomBarState extends State<BottomBar> {
-
-  @override
   Widget build(BuildContext context) {
-    final pay = Provider.of<razorpay>(context ,listen: false);
-    return Container(
-      height: 60,
-      color: Colors.grey.shade200,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 20),
-            child: Text(
-              'Total: \$${widget.totalPrice.toStringAsFixed(2)}',
-              style: const TextStyle(fontSize: 18),
-            ),
+    return Consumer<CartProvider>(
+      builder: (context, cartProvider, _) {
+        return Container(
+          height: 60,
+          color: Colors.grey.shade200,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 20),
+                child: Text(
+                  'Total: \$${cartProvider.totalPrice.toStringAsFixed(2)}',
+                  style: const TextStyle(fontSize: 18),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () => buyNow(),
+                child: const Text('Buy Now'),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed:() {
-              pay.oppensession(40000);
-            },
-            // razorpay().oppensession(100),
-            
-            child: const Text('Buy Now'),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
