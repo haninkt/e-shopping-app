@@ -26,10 +26,10 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (context) => razorpay(),
-        ),ChangeNotifierProvider(
-          create: (context) => CartProvider(),
         ),
-
+        ChangeNotifierProvider(
+          create: (context) => deletion(),
+        ),
       ],
       child: MaterialApp(
         title: 'Flutter Demo',

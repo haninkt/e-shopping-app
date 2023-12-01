@@ -45,8 +45,9 @@ class _LikesState extends State<Likes> {
     if (user != null) {
       return Scaffold(
         appBar: AppBar(
-          title: Text('wishlist'),
+          title: Text('wishlist',style: TextStyle(color: Colors.black)),
           elevation: 0.0,
+          backgroundColor:  Colors.transparent,
         ),
         body: StreamBuilder(
           stream: likelist.doc(user.uid).collection('wishlist').snapshots(),

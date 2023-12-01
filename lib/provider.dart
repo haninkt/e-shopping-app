@@ -1,3 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:e_shoping/cartlist.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -32,6 +35,7 @@ class api extends ChangeNotifier {
 }
 
 class razorpay extends ChangeNotifier {
+  cartslistState cart = cartslistState();
   // Instance of razor pay
   final Razorpay _razorpay = Razorpay();
 
@@ -57,7 +61,7 @@ class razorpay extends ChangeNotifier {
     var options = {
       'key': 'rzp_test_8HwGoKx5qi6NaC', //Razor pay API Key
       'amount':
-          40000, //in the smallest currency sub-unit. 'timeout': 60, // in seconds
+         '${totalPrice}00', //in the smallest currency sub-unit. 'timeout': 60, // in seconds
       'name': 'e shoping', // Generate order id using Orders API
       'description':
           'Description for order', //Order Description to be shown in razor pay page
@@ -66,13 +70,23 @@ class razorpay extends ChangeNotifier {
     _razorpay.open(options);
   }
 }
-class CartProvider extends ChangeNotifier {
-  double _totalPrice = 0.0;
-
-  double get totalPrice => _totalPrice;
-
-  void setTotalPrice(double price) {
-    _totalPrice = price;
-    notifyListeners(); // Notify listeners when totalPrice changes
+class deletion extends ChangeNotifier {
+  final CollectionReference cartlist =
+      FirebaseFirestore.instance.collection('users');
+void deletecart(String docid ,int itemPrice) async {
+    try {
+      await cartlist
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .collection('cart')
+          .doc(docid)
+          .delete();
+          
+      totalPrice -= itemPrice; // Decrement total price by item's price
+   
+      print("Document with ID: $docid deleted");
+    } catch (e) {
+      print("Error deleting document: $e");
+    }
+    notifyListeners();
   }
 }

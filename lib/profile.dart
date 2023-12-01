@@ -1,7 +1,8 @@
-import 'package:e_shoping/login_Page..dart';
+import 'package:e_shoping/login&signup/login_Page..dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:lottie/lottie.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -45,10 +46,10 @@ class ProfilePageState extends State<ProfilePage> {
     return Container(
       decoration: const BoxDecoration(color: Color.fromARGB(255, 255, 255, 255)),
       child: Scaffold(
-        backgroundColor: Colors.transparent,
+        
         appBar: AppBar(
           backgroundColor: Colors.transparent,
-          title: Text('Profile'),
+          title: Text('Profile',style: TextStyle(color: Colors.black)),
         ),
         body: Center(
           child: Column(
@@ -60,7 +61,7 @@ class ProfilePageState extends State<ProfilePage> {
                     radius: 30.0,
                     backgroundImage:  photoUrl != null
                                     ? NetworkImage(photoUrl)
-                                    : AssetImage('assets/user pic.jpg')
+                                    : AssetImage('assets/images/OIP.jpeg')
                                         as ImageProvider,  
                     backgroundColor: Colors.transparent,
                   ),

@@ -1,4 +1,3 @@
-
 import 'package:e_shoping/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -6,71 +5,34 @@ import 'package:lottie/lottie.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 
-
-
 class cartslist extends StatefulWidget {
   const cartslist({super.key});
 
   @override
   State<cartslist> createState() => cartslistState();
 }
-
+int totalPrice =0;
 class cartslistState extends State<cartslist> {
-  final CollectionReference cartlist = FirebaseFirestore.instance.collection('users');
-  double totalPrice = 0.0;
+  final CollectionReference cartlist =
+      FirebaseFirestore.instance.collection('users');
 
-  @override
-  void initState() {
+  
+    @override
+   void initState() {
     super.initState();
+    fetchTotalPrice(); // Call fetchTotalPrice method when the widget initializes
   }
 
-  void deletecart(String docid) async {
-    try {
-      await cartlist
-          .doc(FirebaseAuth.instance.currentUser!.uid)
-          .collection('cart')
-          .doc(docid)
-          .delete();
-      print("Document with ID: $docid deleted");
-    } catch (e) {
-      print("Error deleting document: $e");
-    }
-  }
-
-  void fetchCartItemsAndCalculateTotalPrice(BuildContext context) async {
-    double newTotalPrice = 0;
-    QuerySnapshot snapshot = await cartlist.doc(FirebaseAuth.instance.currentUser!.uid).collection('cart').get();
-
-    for (DocumentSnapshot doc in snapshot.docs) {
-      newTotalPrice += double.tryParse(doc['price'].toString()) ?? 0;
-    }
-
-    setState(() {
-      totalPrice = newTotalPrice;
-    });
-
-    context.read<CartProvider>().setTotalPrice(newTotalPrice);
-}
-
-  void saveTotalPriceToFirebase(double totalPrice) async {
-    try {
-      await cartlist.doc(FirebaseAuth.instance.currentUser!.uid).update({
-        'totalPrice': totalPrice,
-      });
-      print("Total price updated in Firebase");
-    } catch (e) {
-      print("Error saving total price: $e");
-    }
-  }
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-
+ final Remove = Provider.of<deletion>(context);
     if (user != null) {
       return Scaffold(
         appBar: AppBar(
-          title: Text('Cart List'),
+          title: Text('Cart List', style: TextStyle(color: Colors.black)),
           elevation: 0.0,
+          backgroundColor: Colors.transparent,
         ),
         body: StreamBuilder(
           stream: cartlist.doc(user.uid).collection('cart').snapshots(),
@@ -93,7 +55,8 @@ class cartslistState extends State<cartslist> {
                     subtitle: Text(cartlist['price']),
                     trailing: IconButton(
                       onPressed: () {
-                        deletecart(cartlist.id);
+                       Remove.deletecart;
+                        
                       },
                       icon: const Icon(Icons.delete),
                     ),
@@ -103,14 +66,23 @@ class cartslistState extends State<cartslist> {
             }
 
             return Center(
-              child: LottieBuilder.asset('assets/images/Animation - 1700470091164.json'),
+              child: LottieBuilder.asset(
+                  'assets/images/Animation - 1700470091164.json'),
             );
           },
         ),
-        bottomNavigationBar: BottomBar(
+//         bottomNavigationBar: BottomBar(
+
+//   buyNow: () {
+//     Provider.of<razorpay>(context, listen: false).oppensession(0);
+//     // Handle "Buy Now" action here.
+//     print('Buy now!');
+//   },
+// ),
+ bottomNavigationBar: BottomBar(
   getTotalPrice: () => totalPrice, // Pass totalPrice through a callback function
   buyNow: () {
-    // Handle "Buy Now" action here.
+   Provider.of<razorpay>(context, listen: false).oppensession(totalPrice);
     print('Buy now!');
   },
 ),
@@ -121,8 +93,26 @@ class cartslistState extends State<cartslist> {
       );
     }
   }
-}
+    void fetchTotalPrice() async {
+    try {
+      DocumentSnapshot<Object?> snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .get();
 
+      if (snapshot.exists) {
+        Map<String, dynamic> cartData = snapshot.data() as Map<String, dynamic>;
+        int fetchedTotalPrice = cartData['totalPrice'] ?? 0.0;
+        setState(() {
+          totalPrice = fetchedTotalPrice;
+        });
+      }
+    } catch (e) {
+      print("Error fetching total price: $e");
+}
+}
+}
+      
 
 class BottomBar extends StatelessWidget {
   final Function() getTotalPrice;
@@ -136,9 +126,8 @@ class BottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<CartProvider>(
-      builder: (context, cartProvider, _) {
-        return Container(
+    return 
+       Container(
           height: 60,
           color: Colors.grey.shade200,
           child: Row(
@@ -147,7 +136,7 @@ class BottomBar extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(left: 20),
                 child: Text(
-                  'Total: \$${cartProvider.totalPrice.toStringAsFixed(2)}',
+                  'Total: \$$totalPrice',
                   style: const TextStyle(fontSize: 18),
                 ),
               ),
@@ -158,7 +147,5 @@ class BottomBar extends StatelessWidget {
             ],
           ),
         );
-      },
-    );
+      }
   }
-}

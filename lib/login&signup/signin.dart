@@ -1,10 +1,11 @@
 import 'package:e_shoping/home_Page.dart';
-import 'package:e_shoping/login_Page..dart';
+import 'package:e_shoping/login&signup/login_Page..dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:lottie/lottie.dart';
 import 'package:sign_in_button/sign_in_button.dart';
+import 'package:vibration/vibration.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({Key? key}) : super(key: key);
@@ -162,39 +163,40 @@ class _SignInPageState extends State<SignInPage> {
                 ),
                 const SizedBox(height: 16.0),
                 ElevatedButton(
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      try {
-                        await FirebaseAuth.instance.signInWithEmailAndPassword(
-                          email: _emailController.text.trim(),
-                          password: _passwordController.text.trim(),
-                        );
-                        Navigator.pop(context);
-                      } on FirebaseAuthException catch (e) {
-                        if (e.code == 'user-not-found') {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('User not found.'),
-                            ),
-                          );
-                        } else if (e.code == 'wrong-password') {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Wrong password.'),
-                            ),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(e.message!),
-                            ),
-                          );
-                        }
-                      }
-                    }
-                  },
-                  child: const Text('Sign In'),
-                ),
+  onPressed: () async {
+    if (_formKey.currentState!.validate()) {
+      try {
+        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+        Navigator.pushReplacement(context, MaterialPageRoute(builder:(context)=> homePage())); 
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('sign up successfully'),
+            ),
+            
+          );Vibration.vibrate(duration: 300);
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'email-already-in-use') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Email already in use.'),
+            ),
+          );
+        } else {
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.message!),
+            ),
+          );
+        }
+      }
+    }
+  },
+  child: const Text('Sign Up'),
+),
                 SignInButton(
                   Buttons.google,
                   onPressed: () async {

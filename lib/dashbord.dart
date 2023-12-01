@@ -70,7 +70,7 @@ class _dashboardState extends State<dashboard> {
                         size: 40,
                       ))),
               SizedBox(
-                width: 25,
+                width: 40,
               ),
               Padding(
                 padding: const EdgeInsets.only(top: 10),
@@ -80,7 +80,7 @@ class _dashboardState extends State<dashboard> {
                 ),
               ),
               SizedBox(
-                width: 33,
+                width: 60,
               ),
               Padding(
                 padding: const EdgeInsets.only(top: 8),
@@ -100,12 +100,16 @@ class _dashboardState extends State<dashboard> {
           child: Container(
             width: 390,
             height: 70,
-            child: GestureDetector(onTap: () {
-              Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) =>  SearchPage()),);
-            },
-              child: TextField(enableInteractiveSelection: false,enabled: false, 
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SearchPage()),
+                );
+              },
+              child: TextField(
+                enableInteractiveSelection: false,
+                enabled: false,
                 decoration: InputDecoration(
                   contentPadding: const EdgeInsets.fromLTRB(0, 15, 0, 0),
                   hintText: "Search hear",
@@ -133,7 +137,7 @@ class _dashboardState extends State<dashboard> {
                   autoPlay: true,
                   autoPlayInterval: const Duration(seconds: 5),
                   autoPlayAnimationDuration: const Duration(milliseconds: 700),
-                  height: MediaQuery.of(context).size.height /4,
+                  height: MediaQuery.of(context).size.height / 4,
                   viewportFraction: 1.0),
               items: data.map((item) {
                 return GridTile(
@@ -146,7 +150,7 @@ class _dashboardState extends State<dashboard> {
             ),
             SizedBox(child: Text('PRODUCTS')),
             SizedBox(
-              height: MediaQuery.of(context).size.height /2.31,
+              height: MediaQuery.of(context).size.height / 2.31,
               width: double.infinity,
               child: Categories(),
             ),
@@ -188,9 +192,11 @@ class _CategoriesState extends State<Categories> {
             .add(data);
       }
     }
+
     return Api.products.isNotEmpty
         ? GridView.builder(
-          shrinkWrap: true,
+            shrinkWrap: true,
+            primary: true,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               mainAxisExtent: 230.0,
@@ -244,12 +250,16 @@ class _CategoriesState extends State<Categories> {
                                     fontWeight: FontWeight.bold)),
                           ],
                         ),
-                        IconButton(onPressed: () {addwish();
-                          Vibration.vibrate(duration: 500);
-                          ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Added to Wishlist'),));
-                        }, icon: Icon(Icons.favorite))
+                        IconButton(
+                            onPressed: () {
+                              addwish();
+                              Vibration.vibrate(duration: 500);
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(SnackBar(
+                                content: Text('Added to Wishlist'),
+                              ));
+                            },
+                            icon: Icon(Icons.favorite))
                       ],
                     ),
                   ),

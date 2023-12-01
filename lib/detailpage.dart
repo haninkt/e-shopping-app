@@ -2,6 +2,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_shoping/cartlist.dart';
 import 'package:e_shoping/provider.dart';
+import 'package:e_shoping/serching.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -24,43 +25,70 @@ class _detailpageState extends State<detailpage> {
     images = Api.products[Api.productindex]['images'];
     // void addcart() {final data = {'name': '${Api.products[Api.productindex]['title']}', 'price': '\$${Api.products[Api.productindex]['price']}','thumbnail': '${Api.products[Api.productindex]['thumbnail']}'};
     // cart.likelist.add(data);}
-    void addcart() {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        final data = {
-          'name': '${Api.products[Api.productindex]['title']}',
-          'price': '\$${Api.products[Api.productindex]['price']}',
-          'thumbnail': '${Api.products[Api.productindex]['thumbnail']}'
-        };
+  void addcart() {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    final product = Api.products[Api.productindex];
+    // Prepare data for cart item
+    final cartData = {
+      'name': '${product['title']}',
+      'price': '\$${product['price']}',
+      'thumbnail': '${product['thumbnail']}'
+    };
+    
+    // Add to cart
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('cart')
+        .add(cartData);
 
-        FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .collection('cart')
-            .add(data);
-      }
-    }
+    // Update total price in user's document
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get()
+        .then((doc) {
+          var totalPrice = doc.data()?['totalPrice'] ?? 0;
+          totalPrice += product['price']; // Assuming 'price' is a numeric field
 
+          FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .set({'totalPrice': totalPrice}, SetOptions(merge: true));
+        });
+  }
+}
     return Scaffold(
       appBar: AppBar(
-        title: TextField(
-          decoration: InputDecoration(
-            contentPadding: const EdgeInsets.fromLTRB(0, 15, 0, 0),
-            hintText: "Search hear",
-            prefixIcon: const Icon(Icons.search,
-                color: Color.fromARGB(216, 139, 137, 137)),
-            suffixIcon: IconButton(
-                onPressed: () {},
-                icon: const Icon(Icons.mic,
-                    color: Color.fromARGB(216, 139, 137, 137))),
-            filled: true,
-            fillColor: Color.fromARGB(255, 238, 238, 238),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide.none,
+        title:GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SearchPage()),
+                );
+              },
+              child: TextField(
+                enableInteractiveSelection: false,
+                enabled: false,
+                decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.fromLTRB(0, 15, 0, 0),
+                  hintText: "Search hear",
+                  prefixIcon: const Icon(Icons.search,
+                      color: Color.fromARGB(216, 139, 137, 137)),
+                  // suffixIcon: IconButton(
+                  //     onPressed: () {},
+                  //     icon: const Icon(Icons.mic,
+                  //         color: Color.fromARGB(216, 139, 137, 137))),
+                  filled: true,
+                  fillColor: Color.fromARGB(255, 238, 238, 238),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
         backgroundColor: Color.fromARGB(167, 1, 201, 236),
       ),
       body: SingleChildScrollView(
